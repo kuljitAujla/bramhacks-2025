@@ -1,35 +1,58 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useState } from "react";
+import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
+import Home from "./pages/Home";
+import NDVIAnalyzer from "./pages/NDVIAnalyzer";
+import Heatmap from "./pages/Heatmap";
+import AboutUs from "./pages/AboutUs";
+import Acknowledgements from "./pages/Acknowledgements";
+import NotFound from "@/pages/not-found";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function Router() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/ndvi-analyzer" component={NDVIAnalyzer} />
+      <Route path="/heatmap" component={Heatmap} />
+      <Route path="/about" component={AboutUs} />
+      <Route path="/acknowledgements" component={Acknowledgements} />
+      <Route component={NotFound} />
+    </Switch>
+  );
 }
 
-export default App
+function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+          />
+
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <Navbar
+              isSidebarOpen={isSidebarOpen}
+              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            />
+
+            <main className="flex-1 overflow-y-auto">
+              <Router />
+            </main>
+          </div>
+        </div>
+        <Toaster />
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
