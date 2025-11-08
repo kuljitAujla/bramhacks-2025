@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Drone Pollination Mission Control</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ecb6",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#10221d",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="flex h-screen w-full">
+<!-- SideNavBar -->
+<aside class="flex flex-col w-64 bg-background-light dark:bg-[#11221e] border-r border-slate-200 dark:border-slate-800">
+<div class="flex flex-col grow p-4">
+<div class="flex flex-col gap-4">
+<div class="flex gap-3 items-center px-2">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile picture of Dr. Aris Thorne" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCCCYKkOWooc8vWVSYmgJqSmD7pM7NPN97C-hjwY0hrfyh_FIEMhK-Zm8yonC12IKYadi6U5eYkL8d9Ff8R9WJ84OZSl4wUa_LmHz1rLLFy49f_NFTabiz-CtWKb1dv9BKiiwNc4XYdaXGLXBh7HrQgl50KHRyOGkrISySMHSF9LpZTgNHExCkiLPaSHGJvdhmqWbSFa5wjQEn7HfLHlsOxi1OkreoPfpoiRdPWj5KImBPblz-5YDO6eHAyUFVSU_x9iQa8_87T9sE");'></div>
+<div class="flex flex-col">
+<h1 class="text-slate-800 dark:text-white text-base font-medium leading-normal">Dr. Aris Thorne</h1>
+<p class="text-slate-500 dark:text-[#92c9bb] text-sm font-normal leading-normal">Lead Researcher</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 mt-4">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" href="dashboard.html">
+<span class="material-symbols-outlined">dashboard</span>
+<p class="text-sm font-medium leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 dark:bg-[#23483f] text-primary dark:text-white" href="missions.html">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+<p class="text-sm font-medium leading-normal">Missions</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" href="drone-dashboard.html">
+<span class="material-symbols-outlined">flight</span>
+<p class="text-sm font-medium leading-normal">Drones</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" href="analytics.html">
+<span class="material-symbols-outlined">analytics</span>
+<p class="text-sm font-medium leading-normal">Analytics</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" href="alerts.html">
+<span class="material-symbols-outlined">warning</span>
+<p class="text-sm font-medium leading-normal">Alerts</p>
+</a>
+</div>
+</div>
+<div class="flex flex-col gap-4 mt-auto">
+<button class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-background-dark text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">New Mission</span>
+</button>
+<div class="flex flex-col gap-1 border-t border-slate-200 dark:border-slate-800 pt-4">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-sm font-medium leading-normal">Settings</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">help</span>
+<p class="text-sm font-medium leading-normal">Help</p>
+</a>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-background-light dark:bg-background-dark">
+<h2 class="text-slate-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em]">Missions</h2>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+</span>
+</button>
+<button class="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+<span class="material-symbols-outlined">apps</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Mission List Panel -->
+<div class="w-[380px] flex flex-col border-r border-slate-200 dark:border-slate-800 overflow-y-auto">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-500 dark:text-[#92c9bb] flex border-none bg-slate-100 dark:bg-[#23483f] items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-800 dark:text-white focus:outline-0 focus:ring-0 border-none bg-slate-100 dark:bg-[#23483f] focus:border-none h-full placeholder:text-slate-500 dark:placeholder:text-[#92c9bb] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" placeholder="Search by mission name or ID..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-col divide-y divide-slate-200 dark:divide-slate-800">
+<!-- Mission Item 1: Active -->
+<div class="p-4 bg-primary/10 dark:bg-primary/20 cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="flex flex-col gap-1">
+<p class="text-base font-semibold text-slate-800 dark:text-white">Urban Park Pollination</p>
+<p class="text-sm text-slate-600 dark:text-slate-400">ID: UP-2024-001</p>
+</div>
+<span class="text-xs font-medium bg-green-100 text-green-800 px-2.5 py-1 rounded-full dark:bg-green-900 dark:text-green-300">In-Progress</span>
+</div>
+<div class="flex items-center gap-4 mt-3 text-sm text-slate-600 dark:text-slate-400">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">calendar_today</span>
+<span>Today, 10:00 AM</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">map</span>
+<span>Central Park</span>
+</div>
+</div>
+</div>
+<!-- Mission Item 2: Scheduled -->
+<div class="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="flex flex-col gap-1">
+<p class="text-base font-semibold text-slate-800 dark:text-white">Botanical Gardens Run</p>
+<p class="text-sm text-slate-600 dark:text-slate-400">ID: BG-2024-003</p>
+</div>
+<span class="text-xs font-medium bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full dark:bg-blue-900 dark:text-blue-300">Scheduled</span>
+</div>
+<div class="flex items-center gap-4 mt-3 text-sm text-slate-600 dark:text-slate-400">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">calendar_today</span>
+<span>Tomorrow, 9:00 AM</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">map</span>
+<span>Gardens Sector A</span>
+</div>
+</div>
+</div>
+<!-- Mission Item 3: Completed -->
+<div class="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="flex flex-col gap-1">
+<p class="text-base font-semibold text-slate-800 dark:text-white">Community Orchard</p>
+<p class="text-sm text-slate-600 dark:text-slate-400">ID: CO-2024-015</p>
+</div>
+<span class="text-xs font-medium bg-slate-100 text-slate-800 px-2.5 py-1 rounded-full dark:bg-slate-700 dark:text-slate-300">Completed</span>
+</div>
+<div class="flex items-center gap-4 mt-3 text-sm text-slate-600 dark:text-slate-400">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">calendar_today</span>
+<span>Yesterday</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">map</span>
+<span>West Orchard</span>
+</div>
+</div>
+</div>
+<!-- Mission Item 4: Error -->
+<div class="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="flex flex-col gap-1">
+<p class="text-base font-semibold text-slate-800 dark:text-white">Riverbank Flora</p>
+<p class="text-sm text-slate-600 dark:text-slate-400">ID: RF-2024-009</p>
+</div>
+<span class="text-xs font-medium bg-red-100 text-red-800 px-2.5 py-1 rounded-full dark:bg-red-900 dark:text-red-300">Error</span>
+</div>
+<div class="flex items-center gap-4 mt-3 text-sm text-slate-600 dark:text-slate-400">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">calendar_today</span>
+<span>03/15/2024</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">map</span>
+<span>South Bank</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Map Panel -->
+<div class="flex-1 flex flex-col bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full z-10 p-4 bg-gradient-to-b from-black/20 to-transparent">
+<div class="flex justify-between gap-2">
+<div class="flex gap-2 p-1.5 bg-background-light dark:bg-[#11221e] rounded-lg shadow-lg">
+<button class="p-2 text-slate-700 dark:text-white rounded-md bg-primary/20 dark:bg-primary/30">
+<span class="material-symbols-outlined">draw</span>
+</button>
+<button class="p-2 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-2 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md">
+<span class="material-symbols-outlined">delete</span>
+</button>
+<div class="w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+<button class="p-2 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md">
+<span class="material-symbols-outlined">layers</span>
+</button>
+</div>
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-primary text-[#11221e] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-4 shadow-lg">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">save</span>
+<span class="truncate">Save Area</span>
+</button>
+</div>
+</div>
+<!-- Map -->
+<div class="flex-1 bg-cover bg-center" data-alt="Satellite map view of a city with parks and buildings." data-location="City Park" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuALaCvRMvMTfLFeB-051pW1G7wm9BuW_zFZStOqj3tNknP6hiwReL-h2DAaxxeFKv_wsEwh95vNu0BKrk5px2WL97Y8EnxcKo7GY-wbKRd3CfHRTZYXcN7QXfsb6O2-eRqYCosei8gz_Vrfw5PbuOPQN0WjoryDF4aKMpTTcEupWGF7gdcAF3eez0KiXfnkZq-GJVjl3ydeF2luOI2bdNZBaHZcMHDn_E2CB2c7MtbcmsXHlQ5dAj0o7OlEPXxz3DGWxgz-08ZX-Y8");'></div>
+<div class="absolute right-4 bottom-4 flex flex-col items-end gap-3 z-10">
+<div class="flex flex-col gap-0.5 shadow-lg">
+<button class="flex size-10 items-center justify-center rounded-t-lg bg-background-light dark:bg-[#19332d]">
+<span class="material-symbols-outlined text-slate-800 dark:text-white">add</span>
+</button>
+<button class="flex size-10 items-center justify-center rounded-b-lg bg-background-light dark:bg-[#19332d]">
+<span class="material-symbols-outlined text-slate-800 dark:text-white">remove</span>
+</button>
+</div>
+<button class="flex size-10 items-center justify-center rounded-lg bg-background-light dark:bg-[#19332d] shadow-lg">
+<span class="material-symbols-outlined text-slate-800 dark:text-white">my_location</span>
+</button>
+</div>
+<!-- Live Data Card -->
+<div class="absolute left-4 bottom-4 w-80 bg-background-light dark:bg-background-dark/80 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-slate-200 dark:border-slate-800 z-10">
+<div class="flex justify-between items-center">
+<h3 class="font-bold text-lg text-slate-800 dark:text-white">Live Mission Data</h3>
+<span class="text-xs font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300 flex items-center gap-1.5">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+</span>
+                                ACTIVE
+                            </span>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Urban Park Pollination</p>
+<div class="grid grid-cols-2 gap-4 mt-4">
+<div class="flex flex-col">
+<p class="text-xs text-slate-500 dark:text-slate-400">Drone Battery</p>
+<p class="text-lg font-semibold text-slate-800 dark:text-white">78%</p>
+</div>
+<div class="flex flex-col">
+<p class="text-xs text-slate-500 dark:text-slate-400">Time Elapsed</p>
+<p class="text-lg font-semibold text-slate-800 dark:text-white">12:34 min</p>
+</div>
+<div class="flex flex-col">
+<p class="text-xs text-slate-500 dark:text-slate-400">Area Covered</p>
+<p class="text-lg font-semibold text-slate-800 dark:text-white">1.2 acres</p>
+</div>
+<div class="flex flex-col">
+<p class="text-xs text-slate-500 dark:text-slate-400">Progress</p>
+<p class="text-lg font-semibold text-slate-800 dark:text-white">65%</p>
+</div>
+</div>
+<div class="mt-4 flex gap-2">
+<button class="flex-1 h-10 flex items-center justify-center gap-2 bg-yellow-400/20 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400 rounded-lg text-sm font-bold hover:bg-yellow-400/30">
+<span class="material-symbols-outlined text-lg">pause</span>
+                                 Pause
+                             </button>
+<button class="flex-1 h-10 flex items-center justify-center gap-2 bg-red-500/20 text-red-700 dark:bg-red-500/20 dark:text-red-400 rounded-lg text-sm font-bold hover:bg-red-500/30">
+<span class="material-symbols-outlined text-lg">stop_circle</span>
+                                 Stop
+                             </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body>
+</html>
+

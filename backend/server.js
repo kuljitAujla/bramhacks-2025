@@ -31,6 +31,12 @@ app.listen(PORT, () => {
   console.log(`Pollination API: http://localhost:${PORT}/api/pollination`);
   console.log(`Camera API: http://localhost:${PORT}/api/camera`);
   console.log(`Camera Interface: http://localhost:${PORT}/camera.html`);
+  console.log(`Dashboard: http://localhost:${PORT}/dashboard.html`);
+  console.log(`Analytics: http://localhost:${PORT}/analytics.html`);
+  console.log(`Missions: http://localhost:${PORT}/missions.html`);
+  console.log(`Drone Dashboard: http://localhost:${PORT}/drone-dashboard.html`);
+  console.log(`Drone Dashboard Alt: http://localhost:${PORT}/drone-dashboard-alt.html`);
+  console.log(`Alerts: http://localhost:${PORT}/alerts.html`);
 });
 
 module.exports = app;

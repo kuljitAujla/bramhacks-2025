@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DronePollinate Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#13ecb6",
+              "background-light": "#f6f8f8",
+              "background-dark": "#10221d",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-screen w-full flex-col overflow-hidden">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-white/10 px-6 py-3 absolute top-0 left-0 right-0 z-20 bg-background-dark/80 backdrop-blur-sm">
+<div class="flex items-center gap-4 text-white">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">DronePollinate</h2>
+</div>
+<div class="flex items-center gap-8">
+<div class="hidden md:flex items-center gap-9">
+<a class="text-white text-sm font-medium leading-normal px-3 py-1.5 rounded-md bg-primary/20" href="dashboard.html">Dashboard</a>
+<a class="text-white/70 hover:text-white text-sm font-medium leading-normal" href="missions.html">Mission Planner</a>
+<a class="text-white/70 hover:text-white text-sm font-medium leading-normal" href="analytics.html">Data &amp; Analytics</a>
+<a class="text-white/70 hover:text-white text-sm font-medium leading-normal" href="alerts.html">Alerts</a>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-white/10 hover:bg-white/20 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
+<span class="material-symbols-outlined text-white text-xl">notifications</span>
+</button>
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-white/10 hover:bg-white/20 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
+<span class="material-symbols-outlined text-white text-xl">help</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAhOn3a9b19qmbOS7UqvZpJXxxpJnSLohLheSDU3-mZtWHKmxn9-FV7eZyUZUBygVUvZqk_bmHl9M47t2PlKfA6LwvOuQ8c3Qje1MjNQqkWwhqrhuDORALy24YWsnWqEhmMEGub8INGsvGOneozkRiJhQWNVI4SHzmtKoNvbSqxrqDw5Qb9a1lzAu1F4O0Zal4GZkqbIm9J7aPdooJN0C06tfqnqfzNtUmmklAwB7teY8yy0xrHHij2AuMD3M-SbL7Bhk03Qjnar5U");'></div>
+</div>
+</div>
+</header>
+<main class="flex-1 flex relative">
+<div class="flex-1 h-full">
+<div class="bg-cover bg-center flex h-full min-h-[320px] flex-1 flex-col justify-between p-4" data-alt="Satellite map view of an agricultural area with several drone icons" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCjrO8qOB_ENWPVK6EyA26uZO9UxXm9KhUm_cKHuCB8SDLNZHsPHKpzdiAKYGJvI8K8CmbgfLRef66uZfqAnOJZtXMcwEbVmQXQ0kmM4Q0WMTQjOmEynPntPSTIVhBnO4A6IDkOvQpJV7xlvD_NXZqIRFluUsXnO4mgwlGEnoRciCUsa-sF5uSXamf9o-jTSUlzRv9G6J2ioHoJ9-FZScG-ZUXjfRBpsw5yCLLP3VzCjveOurmRcltagiEyIWlwEhNIU-PO45Hyu_A");'>
+<label class="flex flex-col min-w-40 h-12 max-w-sm">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-[#92c9bb] flex border-none bg-[#19332d]/80 backdrop-blur-sm items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-2xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-white focus:outline-0 focus:ring-0 border-none bg-[#19332d]/80 backdrop-blur-sm focus:border-none h-full placeholder:text-[#92c9bb] px-4 text-base font-normal leading-normal" placeholder="Search for a location or drone ID" value=""/>
+</div>
+</label>
+<div class="flex items-end justify-between w-full">
+<div class="flex gap-2">
+<button class="flex items-center justify-center gap-2 rounded-lg bg-[#19332d]/80 backdrop-blur-sm shadow-lg px-4 h-10 text-white text-sm">
+<span class="material-symbols-outlined text-lg">layers</span>
+                                Layers
+                            </button>
+<button class="flex items-center justify-center gap-2 rounded-lg bg-[#19332d]/80 backdrop-blur-sm shadow-lg px-4 h-10 text-white text-sm">
+<span class="material-symbols-outlined text-lg">legend_toggle</span>
+                                Legend
+                            </button>
+</div>
+<div class="flex flex-col items-end gap-3">
+<div class="flex flex-col gap-0.5">
+<button class="flex size-10 items-center justify-center rounded-t-lg bg-[#19332d]/80 backdrop-blur-sm shadow-lg">
+<span class="material-symbols-outlined text-white text-2xl">add</span>
+</button>
+<button class="flex size-10 items-center justify-center rounded-b-lg bg-[#19332d]/80 backdrop-blur-sm shadow-lg">
+<span class="material-symbols-outlined text-white text-2xl">remove</span>
+</button>
+</div>
+<button class="flex size-10 items-center justify-center rounded-lg bg-[#19332d]/80 backdrop-blur-sm shadow-lg">
+<span class="material-symbols-outlined text-white text-2xl">navigation</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<aside class="w-full max-w-sm bg-background-dark/80 backdrop-blur-sm border-l border-white/10 shadow-2xl h-full flex flex-col absolute right-0 top-0 bottom-0 z-10 pt-20">
+<div class="flex h-full flex-col justify-between p-4">
+<div class="flex flex-col gap-4">
+<div class="flex gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" data-alt="Drone icon" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCoJvioz_TrvLOyl-2Jpk6pmMkq3sHTRaJ4M09SS7VfIoJlC5Ebu1Bvjb0vpeOEu12-4pwRFtOZ3g7bvm93GcWsfnuce1CUlpBbwZlhV4b_HxiwUtQTQrBl1IrpZzS8KvWDk_PCUmDsT8_dfGOYNhMwiK7zGA452rTGel-OWuZdY5dZV9Ocw0mG2oKQq8uZj8f2nNaiMcn_C8wRb-mtv6pT5jvwNnfk-3L4T7q7OwAzFpitWdEuxV65_j5_CE0DK1v2Nrpxww5TcVw");'></div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-medium leading-normal">Drone Alpha-07</h1>
+<p class="text-[#92c9bb] text-sm font-normal leading-normal">Pollinating Zone B</p>
+</div>
+</div>
+<div class="relative flex items-center justify-center bg-cover bg-center aspect-video rounded-lg" data-alt="Live video feed from a drone's camera showing a field of flowers with yellow bounding boxes around them." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA7JXoxf8MJv_5qiYHZYwyzgWurFJrO5NGN61rARKI-3RnKwBfVVrdUsmej59vv3zyp_6ZJkqTeOUVIZxecAs-zrUV1kCddWjXf8rnTK67VpFI7Z8TriB981g16wvTH3bTTNHCYAUKyCSP_3nBiURsSoPa2NH2DunWu0s_0Nx7S4Zy4piGO2NLLx-AGmsA0NpQv_qQSyoiwfZ6bu89vArlco9UG1BTDtZR4DDWK_j51Q9pz1_BmyiOXETVQtNWqJbUBE0VG9peGioI");'>
+<button class="flex shrink-0 items-center justify-center rounded-full size-12 bg-black/40 text-white hover:bg-black/60">
+<span class="material-symbols-outlined text-inherit text-3xl">play_arrow</span>
+</button>
+<div class="absolute top-2 left-2 bg-red-600/80 text-white text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+<div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                LIVE
+                            </div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-1 rounded-lg p-4 border border-white/10 bg-white/5">
+<p class="text-white/70 text-sm font-medium leading-normal">Live Pollination</p>
+<p class="text-white tracking-light text-2xl font-bold leading-tight">1,248</p>
+</div>
+<div class="flex flex-col gap-1 rounded-lg p-4 border border-white/10 bg-white/5">
+<p class="text-white/70 text-sm font-medium leading-normal">Flowers Detected</p>
+<p class="text-white tracking-light text-2xl font-bold leading-tight">15</p>
+</div>
+<div class="flex flex-col gap-1 rounded-lg p-4 border border-white/10 bg-white/5">
+<p class="text-white/70 text-sm font-medium leading-normal">Flight Time</p>
+<p class="text-white tracking-light text-2xl font-bold leading-tight">00:42:19</p>
+</div>
+<div class="flex flex-col gap-1 rounded-lg p-4 border border-white/10 bg-white/5">
+<p class="text-white/70 text-sm font-medium leading-normal">Battery</p>
+<p class="text-white tracking-light text-2xl font-bold leading-tight flex items-center gap-2">
+                                    82%
+                                    <span class="material-symbols-outlined text-green-400">battery_5_bar</span>
+</p>
+</div>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20">
+<span class="material-symbols-outlined text-primary text-2xl">videocam</span>
+<p class="text-primary text-sm font-medium leading-normal">Live Feed</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer">
+<span class="material-symbols-outlined text-white text-2xl">info</span>
+<p class="text-white text-sm font-medium leading-normal">Details</p>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary hover:bg-primary/90 text-background-dark text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">View Mission Details</span>
+</button>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer">
+<span class="material-symbols-outlined text-white text-2xl">settings</span>
+<p class="text-white text-sm font-medium leading-normal">Settings</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer">
+<span class="material-symbols-outlined text-white text-2xl">gamepad</span>
+<p class="text-white text-sm font-medium leading-normal">Manual Override</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</div>
+</body>
+</html>
+
