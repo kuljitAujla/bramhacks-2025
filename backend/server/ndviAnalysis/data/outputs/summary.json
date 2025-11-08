@@ -1,0 +1,10 @@
+{
+  "note": "positive = vegetation increase, negative = decrease",
+  "total_loss_m2": 36351267.73550873,
+  "total_gain_m2": 30252943.63614836,
+  "loss_km2": 36.351267735508735,
+  "gain_km2": 30.25294363614836,
+  "trees_needed": 76229,
+  "recovery_fraction": 0.5,
+  "crown_m2_per_tree": 40.0
+}
