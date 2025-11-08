@@ -12,6 +12,8 @@ import Heatmap from "./pages/Heatmap";
 import AboutUs from "./pages/AboutUs";
 import Acknowledgements from "./pages/Acknowledgements";
 import NotFound from "@/pages/not-found";
+import "leaflet/dist/leaflet.css";
+
 
 function Router() {
   return (
