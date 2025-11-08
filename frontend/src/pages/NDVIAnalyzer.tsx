@@ -2,7 +2,7 @@ import { useState } from "react";
 import AnalysisMetric from "../components/AnalysisMetric";
 import { TrendingUp, TreeDeciduous, Leaf, BarChart3, Calendar } from "lucide-react";
 
-type TimePeriod = "1-month" | "3-months" | "6-months" | null;
+type TimePeriod = "1-month" | "1-year" | null;
 
 // mock data - need to replace with real api
 const mockAnalysisData = {
@@ -13,19 +13,12 @@ const mockAnalysisData = {
     coverageArea: "87%",
     summary: "Over the past month, vegetation has shown steady growth with an 8% increase in green coverage. To support this positive trend, we recommend planting approximately 420 trees in identified sparse areas. The average NDVI score of 0.65 indicates healthy vegetation across 87% of the monitored region.",
   },
-  "3-months": {
-    vegetationChange: "+18%",
-    treesToPlant: "890",
-    ndviScore: "0.67",
-    coverageArea: "88%",
-    summary: "The 3-month analysis reveals significant vegetation improvement with an 18% increase in green coverage. Seasonal growth patterns are evident, and we recommend planting approximately 890 trees to fill remaining gaps. The average NDVI score of 0.67 shows sustained healthy vegetation across 88% of the area.",
-  },
-  "6-months": {
+  "1-year": {
     vegetationChange: "+24%",
     treesToPlant: "1,250",
     ndviScore: "0.68",
     coverageArea: "89%",
-    summary: "The 6-month analysis demonstrates excellent vegetation recovery with a 24% increase in green coverage. Long-term growth patterns indicate successful ecosystem regeneration. To maintain this momentum and further improve the ecosystem, we recommend planting approximately 1,250 trees in the identified low-density areas. The average NDVI score of 0.68 indicates healthy vegetation across 89% of the monitored area.",
+    summary: "The 1-year analysis demonstrates excellent vegetation recovery with a 24% increase in green coverage. Long-term growth patterns indicate successful ecosystem regeneration. To maintain this momentum and further improve the ecosystem, we recommend planting approximately 1,250 trees in the identified low-density areas. The average NDVI score of 0.68 indicates healthy vegetation across 89% of the monitored area.",
   },
 };
 
@@ -53,12 +46,10 @@ export default function NDVIAnalyzer() {
           Select Time Period
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             { period: "1-month" as TimePeriod, label: "1 Month", description: "Recent changes" },
-            { period: "3-months" as TimePeriod, label: "3 Months", description: "Seasonal trends" },
-            { period: "6-months" as TimePeriod, label: "6 Months", description: "Long-term analysis" },
-
+            { period: "1-year" as TimePeriod, label: "1 Year", description: "Long-term analysis" },
           ].map((option) => (
             <button
               key={option.period}

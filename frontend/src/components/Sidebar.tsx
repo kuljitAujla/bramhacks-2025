@@ -47,7 +47,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             const isActive = location === item.path;
 
             return (
-              <Link key={item.path} href={item.path}onClick={onClose}>
+              <Link key={item.path} href={item.path} onClick={onClose}>
                 <div
                   className={`flex items-center gap-3 px-4 py-3 rounded-md hover-elevate active-elevate-2 cursor-pointer ${isActive ? "bg-accent text-accent-foreground font-medium" : ""}`}
                 >
