@@ -24,10 +24,11 @@ RECOVERY_FRACTION = 0.5     # replant half of what we lose
 CROWN_M2_PER_TREE = 40.0    # one mature tree ≈ 40 m² canopy
 
 # NDVI change thresholds
-DECREASE_LARGE = -0.3
-DECREASE_MOD   = -0.15
-INCREASE_MOD   = 0.15
-INCREASE_LARGE = 0.3
+DECREASE_LARGE = -0.2
+DECREASE_MOD   = -0.1
+INCREASE_MOD   =  0.15
+INCREASE_LARGE =  0.3
+
 
 
 def read_and_align(reference_path, comparison_path):
@@ -65,7 +66,7 @@ def classify_change(july_2024, july_2025):
 
 
 def pixel_area_m2(transform):
-    """Rough pixel area in square metres for EPSG:4326 at Brampton's latitude."""
+    """Rough pixel area in square metres for EPSG:4326 at Peel's latitude."""
     mean_lat = 43.7
     m_per_deg_lat = 111132.92
     m_per_deg_lon = 111412.84 * cos(radians(mean_lat))
@@ -114,8 +115,9 @@ def main():
     vectorize(change_classes, profile["transform"], profile["crs"], [4, 5], dec_geo)
     vectorize(change_classes, profile["transform"], profile["crs"], [1, 2], inc_geo)
 
-    # Back-of-the-envelope tree count
-    recover_area = total_loss_m2 * RECOVERY_FRACTION
+    # Plant trees only to recover net vegetation loss (loss - gain)
+    net_loss_m2 = max(total_loss_m2 - total_gain_m2, 0)
+    recover_area = net_loss_m2 * RECOVERY_FRACTION
     trees_needed = int(recover_area / CROWN_M2_PER_TREE) if CROWN_M2_PER_TREE else 0
 
     summary = {
