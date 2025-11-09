@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Drone Camera Feed - Pollination System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        #video {
+            width: 100%;
+            height: auto;
+            display: block;
+            /* No mirror for laptop webcam - natural view */
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 640px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .status.success {
+            background: rgba(56, 239, 125, 0.3);
+        }
+
+        .status.error {
+            background: rgba(235, 51, 73, 0.3);
+        }
+
+        .status.info {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .auto-mode {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        .switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #38ef7d;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌺 Drone Camera Feed</h1>
+        
+        <div class="video-container">
+            <video id="video" autoplay playsinline></video>
+        </div>
+
+        <canvas id="canvas"></canvas>
+
+        <div class="controls">
+            <div class="button-group">
+                <button id="startBtn" class="btn-primary">Start Camera</button>
+                <button id="stopBtn" class="btn-danger" disabled>Stop Camera</button>
+            </div>
+
+            <div class="button-group">
+                <button id="captureBtn" class="btn-success" disabled>Capture Frame</button>
+                <button id="processBtn" class="btn-secondary" disabled>Process & Detect</button>
+            </div>
+
+            <div class="auto-mode">
+                <label class="switch">
+                    <input type="checkbox" id="autoMode">
+                    <span class="slider"></span>
+                </label>
+                <span>Auto Mode (Process every 2 seconds)</span>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Frames Sent</div>
+                <div class="stat-value" id="framesSent">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Flowers Detected</div>
+                <div class="stat-value" id="flowersDetected">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pollinations</div>
+                <div class="stat-value" id="pollinations">0</div>
+            </div>
+        </div>
+
+        <div class="status info" id="status">
+            Ready to start camera feed
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const processBtn = document.getElementById('processBtn');
+        const autoMode = document.getElementById('autoMode');
+        const status = document.getElementById('status');
+        
+        const framesSentEl = document.getElementById('framesSent');
+        const flowersDetectedEl = document.getElementById('flowersDetected');
+        const pollinationsEl = document.getElementById('pollinations');
+
+        let stream = null;
+        let autoInterval = null;
+        let framesSent = 0;
+        let flowersDetected = 0;
+        let pollinations = 0;
+
+        // Get API base URL (adjust if needed)
+        const API_BASE = window.location.origin;
+
+        // Check if camera API is available
+        function checkCameraSupport() {
+            if (!navigator.mediaDevices) {
+                return {
+                    supported: false,
+                    error: 'MediaDevices API not available. Make sure you are accessing this page via HTTP/HTTPS (not file://).'
+                };
+            }
+            
+            if (!navigator.mediaDevices.getUserMedia) {
+                return {
+                    supported: false,
+                    error: 'getUserMedia not available. Your browser may not support camera access.'
+                };
+            }
+
+            // Check if we're in a secure context (HTTPS or localhost)
+            const isSecure = window.isSecureContext || 
+                           window.location.protocol === 'https:' || 
+                           window.location.hostname === 'localhost' ||
+                           window.location.hostname === '127.0.0.1' ||
+                           window.location.hostname.match(/^192\.168\./);
+
+            if (!isSecure) {
+                return {
+                    supported: false,
+                    error: 'Camera requires HTTPS or localhost. Please access via http://localhost:3001 or use HTTPS.'
+                };
+            }
+
+            return { supported: true };
+        }
+
+        function updateStatus(message, type = 'info') {
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function updateStats() {
+            framesSentEl.textContent = framesSent;
+            flowersDetectedEl.textContent = flowersDetected;
+            pollinationsEl.textContent = pollinations;
+        }
+
+        async function startCamera() {
+            try {
+                // Check camera support first
+                const support = checkCameraSupport();
+                if (!support.supported) {
+                    updateStatus(`⚠️ ${support.error}`, 'error');
+                    startBtn.disabled = true;
+                    return;
+                }
+
+                updateStatus('Requesting camera access...', 'info');
+                
+                // Polyfill for older browsers
+                const getUserMedia = navigator.mediaDevices.getUserMedia ||
+                    navigator.getUserMedia ||
+                    navigator.webkitGetUserMedia ||
+                    navigator.mozGetUserMedia;
+
+                if (!getUserMedia) {
+                    throw new Error('Camera API not supported in this browser');
+                }
+
+                // Wrap in Promise if needed (for older browsers)
+                let mediaStream;
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    // Try to use back camera (phone) first, fallback to any camera (laptop webcam)
+                    mediaStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: { ideal: 'environment' }, // Prefer back camera, but allow any
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    }).catch(async () => {
+                        // Fallback: use any available camera (for laptop webcam)
+                        return await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            }
+                        });
+                    });
+                } else {
+                    // Fallback for older browsers
+                    mediaStream = await new Promise((resolve, reject) => {
+                        getUserMedia.call(navigator, {
+                            video: true // Use any available camera
+                        }, resolve, reject);
+                    });
+                }
+                
+                stream = mediaStream;
+
+                video.srcObject = stream;
+                video.play();
+                
+                // Set canvas size to match video
+                video.addEventListener('loadedmetadata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                });
+
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                captureBtn.disabled = false;
+                processBtn.disabled = false;
+                
+                updateStatus('Camera active - Ready to capture', 'success');
+            } catch (error) {
+                updateStatus(`Error: ${error.message}`, 'error');
+                console.error('Camera error:', error);
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+
+            video.srcObject = null;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            captureBtn.disabled = true;
+            processBtn.disabled = true;
+            autoMode.checked = false;
+            
+            updateStatus('Camera stopped', 'info');
+        }
+
+        function captureFrame() {
+            if (!stream) return;
+            
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/jpeg', 0.8);
+        }
+
+        async function sendFrame(process = false) {
+            const imageDataUrl = captureFrame();
+            if (!imageDataUrl) return;
+
+            // Convert data URL to blob
+            const response = await fetch(imageDataUrl);
+            const blob = await response.blob();
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('image', blob, 'frame.jpg');
+            formData.append('width', canvas.width);
+            formData.append('height', canvas.height);
+
+            try {
+                const endpoint = process ? '/api/camera/process' : '/api/camera/frame';
+                const res = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+                
+                if (res.ok) {
+                    framesSent++;
+                    updateStats();
+                    
+                    if (process && data.detection) {
+                        if (data.detection.flowerDetected) {
+                            flowersDetected++;
+                            if (data.pollination) {
+                                pollinations++;
+                                updateStatus('🌺 Flower detected! Pollination triggered!', 'success');
+                            } else {
+                                updateStatus('🌺 Flower detected!', 'success');
+                            }
+                        } else {
+                            updateStatus('No flower detected in frame', 'info');
+                        }
+                    } else {
+                        updateStatus(`Frame sent successfully (${framesSent} total)`, 'success');
+                    }
+                } else {
+                    updateStatus(`Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                updateStatus(`Error: ${error.message}`, 'error');
+                console.error('Send frame error:', error);
+            }
+        }
+
+        function toggleAutoMode() {
+            if (autoMode.checked) {
+                updateStatus('Auto mode enabled - Processing every 2 seconds', 'info');
+                autoInterval = setInterval(() => {
+                    sendFrame(true); // Process with detection
+                }, 2000);
+            } else {
+                if (autoInterval) {
+                    clearInterval(autoInterval);
+                    autoInterval = null;
+                }
+                updateStatus('Auto mode disabled', 'info');
+            }
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startCamera);
+        stopBtn.addEventListener('click', stopCamera);
+        captureBtn.addEventListener('click', () => sendFrame(false));
+        processBtn.addEventListener('click', () => sendFrame(true));
+        autoMode.addEventListener('change', toggleAutoMode);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', stopCamera);
+
+        // Check camera support on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const support = checkCameraSupport();
+            if (!support.supported) {
+                updateStatus(`⚠️ ${support.error}`, 'error');
+                startBtn.disabled = true;
+                
+                // Show helpful message
+                const protocol = window.location.protocol;
+                const hostname = window.location.hostname;
+                
+                if (protocol === 'file:') {
+                    updateStatus('⚠️ Cannot access camera from file://. Please use http://localhost:3001/camera.html', 'error');
+                } else if (!hostname.match(/^(localhost|127\.0\.0\.1|192\.168\.)/)) {
+                    updateStatus('⚠️ Camera requires HTTPS or local network. Use http://localhost:3001 or http://YOUR_IP:3001', 'error');
+                }
+            } else {
+                updateStatus('Ready to start camera feed', 'info');
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -14,7 +14,8 @@ import random
 import shutil
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow import keras
+from tensorflow.keras.preprocessing.image import ImageDataGenerator  # type: ignore
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 import numpy as np
@@ -29,9 +30,49 @@ path = kagglehub.dataset_download("mhm707/fd-nfd")
 
 print("Path to dataset files:", path)
 
+# Dynamically find FD and NFD directories within the downloaded path
+# The path structure is: .../versions/1/FD and .../versions/1/NFD
+dataset_base_path = path
+if not os.path.exists(dataset_base_path):
+    # Try to find the dataset in common cache locations
+    possible_paths = [
+        os.path.join(os.path.expanduser('~'), '.cache', 'kagglehub', 'datasets', 'mhm707', 'fd-nfd', 'versions', '1'),
+        os.path.join('/root', '.cache', 'kagglehub', 'datasets', 'mhm707', 'fd-nfd', 'versions', '1'),
+    ]
+    for possible_path in possible_paths:
+        if os.path.exists(possible_path):
+            dataset_base_path = possible_path
+            break
+
+# Find FD and NFD directories
+fd_source_path = None
+nfd_source_path = None
+
+# Check if FD and NFD are direct subdirectories
+for item in os.listdir(dataset_base_path):
+    item_path = os.path.join(dataset_base_path, item)
+    if os.path.isdir(item_path):
+        if item == 'FD':
+            fd_source_path = item_path
+        elif item == 'NFD':
+            nfd_source_path = item_path
+
+if not fd_source_path:
+    raise FileNotFoundError(f"Could not find FD directory in {dataset_base_path}")
+
+print(f"Found FD directory: {fd_source_path}")
+
+# Note: FD and NFD images are in the same directory (fd_source_path)
+# They are separated by filename: FD.xxx.jpg for flowers, NFDxxx.jpg for non-flowers
+# So we'll use fd_source_path for both
+if not nfd_source_path:
+    # FD and NFD are in the same directory, separated by filename
+    nfd_source_path = fd_source_path
+    print(f"Note: FD and NFD images are in the same directory, separated by filename")
+
 """Display random 10 imges to look *at* the dataset"""
 
-dataset_path = '/root/.cache/kagglehub/datasets/mhm707/fd-nfd/versions/1/FD'
+dataset_path = fd_source_path
 
 # List all files in the directory
 all_files = os.listdir(dataset_path)
@@ -56,6 +97,38 @@ for img_name in first_10_images:
 base_output_dir = "flower_dataset"
 fd_category_dir = os.path.join(base_output_dir, 'FD')
 nfd_category_dir = os.path.join(base_output_dir, 'NFD')
+
+# Create output directories if they don't exist
+os.makedirs(fd_category_dir, exist_ok=True)
+os.makedirs(nfd_category_dir, exist_ok=True)
+
+# Copy images from source directories to local directories
+# Note: FD and NFD images are in the same directory, separated by filename
+print("Separating and copying FD and NFD images...")
+all_source_files = [f for f in os.listdir(fd_source_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+
+# Separate FD and NFD images based on filename patterns
+# FD images start with "FD." and NFD images start with "NFD"
+fd_source_files = [f for f in all_source_files if f.startswith('FD.')]
+nfd_source_files = [f for f in all_source_files if f.startswith('NFD')]
+
+print(f"Found {len(fd_source_files)} FD images and {len(nfd_source_files)} NFD images")
+
+# Copy FD images
+for filename in fd_source_files:
+    src_path = os.path.join(fd_source_path, filename)
+    dst_path = os.path.join(fd_category_dir, filename)
+    if not os.path.exists(dst_path):  # Only copy if not already exists
+        shutil.copy(src_path, dst_path)
+print(f"Copied {len(fd_source_files)} FD images")
+
+# Copy NFD images
+for filename in nfd_source_files:
+    src_path = os.path.join(fd_source_path, filename)
+    dst_path = os.path.join(nfd_category_dir, filename)
+    if not os.path.exists(dst_path):  # Only copy if not already exists
+        shutil.copy(src_path, dst_path)
+print(f"Copied {len(nfd_source_files)} NFD images")
 
 # Get the list of files in each category
 fd_files = [f for f in os.listdir(fd_category_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
@@ -102,58 +175,6 @@ count_nfd_after = len([f for f in os.listdir(nfd_category_dir) if f.lower().ends
 
 
 
-"""Make sure the data has the same amount of flowers and not flower data points"""
-
-# Define base directories
-base_resized_output_dir = "flower_dataset_resized"
-
-# Define source category directories within the resized dataset
-fd_resized_dir = os.path.join(base_resized_output_dir, 'FD')
-nfd_resized_dir = os.path.join(base_resized_output_dir, 'NFD')
-
-# Define target split directories
-base_train_dir = os.path.join(base_resized_output_dir, 'train')
-base_val_dir = os.path.join(base_resized_output_dir, 'validation')
-
-# Create train and validation directories for each category
-os.makedirs(os.path.join(base_train_dir, 'FD'), exist_ok=True)
-os.makedirs(os.path.join(base_train_dir, 'NFD'), exist_ok=True)
-os.makedirs(os.path.join(base_val_dir, 'FD'), exist_ok=True)
-os.makedirs(os.path.join(base_val_dir, 'NFD'), exist_ok=True)
-
-def split_and_copy_images(source_dir, train_dest_dir, val_dest_dir, split_ratio=0.7):
-    all_files = [f for f in os.listdir(source_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-
-    if not all_files:
-
-        return
-
-    train_files, val_files = train_test_split(all_files, test_size=1-split_ratio, random_state=42)
-
-
-    # Copy files to train directory
-    for filename in train_files:
-        src_path = os.path.join(source_dir, filename)
-        dst_path = os.path.join(train_dest_dir, filename)
-        shutil.copy(src_path, dst_path)
-
-    # Copy files to validation directory
-    for filename in val_files:
-        src_path = os.path.join(source_dir, filename)
-        dst_path = os.path.join(val_dest_dir, filename)
-        shutil.copy(src_path, dst_path)
-
-
-# Split and copy images for FD category
-split_and_copy_images(fd_resized_dir,
-                      os.path.join(base_train_dir, 'FD'),
-                      os.path.join(base_val_dir, 'FD'))
-
-# Split and copy images for NFD category
-split_and_copy_images(nfd_resized_dir,
-                      os.path.join(base_train_dir, 'NFD'),
-                      os.path.join(base_val_dir, 'NFD'))
-
 """Resize the images to a 100 by 100"""
 
 # Define base directories
@@ -192,6 +213,59 @@ resize_and_save_images(fd_category_dir, fd_resized_dir, image_size)
 
 # Process NFD images
 resize_and_save_images(nfd_category_dir, nfd_resized_dir, image_size)
+
+"""Split resized images into train and validation sets"""
+
+# Define base directories
+base_resized_output_dir = "flower_dataset_resized"
+
+# Define source category directories within the resized dataset
+fd_resized_dir = os.path.join(base_resized_output_dir, 'FD')
+nfd_resized_dir = os.path.join(base_resized_output_dir, 'NFD')
+
+# Define target split directories
+base_train_dir = os.path.join(base_resized_output_dir, 'train')
+base_val_dir = os.path.join(base_resized_output_dir, 'validation')
+
+# Create train and validation directories for each category
+os.makedirs(os.path.join(base_train_dir, 'FD'), exist_ok=True)
+os.makedirs(os.path.join(base_train_dir, 'NFD'), exist_ok=True)
+os.makedirs(os.path.join(base_val_dir, 'FD'), exist_ok=True)
+os.makedirs(os.path.join(base_val_dir, 'NFD'), exist_ok=True)
+
+def split_and_copy_images(source_dir, train_dest_dir, val_dest_dir, split_ratio=0.7):
+    all_files = [f for f in os.listdir(source_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+
+    if not all_files:
+        print(f"Warning: No images found in {source_dir}")
+        return
+
+    print(f"Splitting {len(all_files)} images from {source_dir}...")
+    train_files, val_files = train_test_split(all_files, test_size=1-split_ratio, random_state=42)
+
+    # Copy files to train directory
+    for filename in train_files:
+        src_path = os.path.join(source_dir, filename)
+        dst_path = os.path.join(train_dest_dir, filename)
+        shutil.copy(src_path, dst_path)
+
+    # Copy files to validation directory
+    for filename in val_files:
+        src_path = os.path.join(source_dir, filename)
+        dst_path = os.path.join(val_dest_dir, filename)
+        shutil.copy(src_path, dst_path)
+    
+    print(f"Copied {len(train_files)} to train, {len(val_files)} to validation")
+
+# Split and copy images for FD category
+split_and_copy_images(fd_resized_dir,
+                      os.path.join(base_train_dir, 'FD'),
+                      os.path.join(base_val_dir, 'FD'))
+
+# Split and copy images for NFD category
+split_and_copy_images(nfd_resized_dir,
+                      os.path.join(base_train_dir, 'NFD'),
+                      os.path.join(base_val_dir, 'NFD'))
 
 
 def display_random_images(directory, num_images=5, title_prefix=""):
@@ -278,13 +352,11 @@ history = model.fit(
     validation_steps=validation_generator.samples // batch_size
 )
 
-def preprocess_image(image_path):
-    """Preprocess an image for prediction"""
-    img = Image.open(image_path)
-    img = img.resize((img_height, img_width))
-    img_array = np.array(img) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
-    return img_array
+# Save the trained model
+model_path = os.path.join(os.path.dirname(__file__), 'flower_classifier_model.h5')
+model.save(model_path)
+print(f"Model saved to: {model_path}")
+
 
 my_image_path = '/content/photo-1695897706183-5295269554b9.jpg'
 
@@ -301,7 +373,7 @@ else:
 
 
     new_prediction_score = new_raw_prediction[0][0]
-    if new_prediction_score < 0.5:
+    if new_prediction_score < 0.3:
         new_predicted_class = 'Flower'
     else:
         new_predicted_class = 'Not a Flower'
