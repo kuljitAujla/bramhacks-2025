@@ -14,8 +14,7 @@ export default function Home() {
         </h1>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl">
           Using satellite data to create sustainable solutions and improve communities
-          </p>
-
+        </p>
       </section>
 
       <section className="px-4 py-16 bg-muted/30">

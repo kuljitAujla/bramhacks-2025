@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import NDVIMap from "../components/NDVIMap";
 import AnalysisMetric from "../components/AnalysisMetric";
 import { Activity, BadgeCheck, Leaf, TrendingUp, TreeDeciduous, BarChart3, Calendar } from "lucide-react";
@@ -220,8 +221,11 @@ function SolutionSection() {
           <Button
             size="lg"
             className="mt-6 w-full bg-yellow-300 text-slate-900 hover:bg-yellow-300/90 font-semibold"
+            asChild
           >
-            View drone missions
+            <Link href="/heatmap">
+              View drone missions
+            </Link>
           </Button>
         </div>
       </div>

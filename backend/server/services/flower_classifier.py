@@ -12,7 +12,6 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import random
 import shutil
-from IPython.display import Image, display
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -278,6 +277,14 @@ history = model.fit(
     validation_data=validation_generator,
     validation_steps=validation_generator.samples // batch_size
 )
+
+def preprocess_image(image_path):
+    """Preprocess an image for prediction"""
+    img = Image.open(image_path)
+    img = img.resize((img_height, img_width))
+    img_array = np.array(img) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    return img_array
 
 my_image_path = '/content/photo-1695897706183-5295269554b9.jpg'
 
