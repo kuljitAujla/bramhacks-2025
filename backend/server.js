@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const pollinationRoutes = require('./server/routes/pollinationRoutes');
 const cameraRoutes = require('./server/routes/cameraRoutes');
+const dashboardRoutes = require('./server/routes/dashboardRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -18,10 +19,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Routes
 app.use('/api/pollination', pollinationRoutes);
 app.use('/api/camera', cameraRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Root route - redirect to dashboard
+app.get('/', (req, res) => {
+  res.redirect('/dashboard.html');
 });
 
 // Start server
@@ -37,6 +44,7 @@ app.listen(PORT, () => {
   console.log(`Drone Dashboard: http://localhost:${PORT}/drone-dashboard.html`);
   console.log(`Drone Dashboard Alt: http://localhost:${PORT}/drone-dashboard-alt.html`);
   console.log(`Alerts: http://localhost:${PORT}/alerts.html`);
+  console.log(`Flower Classifier Test: http://localhost:${PORT}/test-classifier.html`);
 });
 
 module.exports = app;

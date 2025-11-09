@@ -1,0 +1,13 @@
+# Flower Classifier Service Requirements
+# Install with: pip install -r requirements.txt
+
+# Core dependencies
+tensorflow>=2.10.0
+Pillow>=9.0.0
+numpy>=1.21.0
+
+# Optional: for training (if using the original training script)
+scikit-learn>=1.0.0
+kagglehub>=0.2.0
+matplotlib>=3.5.0
+

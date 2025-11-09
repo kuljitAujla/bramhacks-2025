@@ -1,0 +1,23 @@
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Model files (can be large)
+*.h5
+*.hdf5
+*.pkl
+*.joblib
+
+# Dataset directories
+flower_dataset/
+flower_dataset_resized/
+
+# Python cache
+.python-version
+*.egg-info/
+dist/
+build/
+

@@ -5,6 +5,13 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Drone Pollination Mission Control</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Mapbox GL JS - Replace YOUR_ACCESS_TOKEN with your Mapbox access token -->
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
+<script>
+  // Set Mapbox access token (replace with your actual token)
+  mapboxgl.accessToken = 'pk.eyJ1IjoiYWtzaGFqIiwiYSI6ImNtYnFvNmlqdTAxZjYya3B2cjk1ZGcxY2gifQ.Vdbp5BETedcYHmoZuTJgrQ';
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
 <script>
@@ -229,7 +236,7 @@
 </div>
 </div>
 <!-- Map -->
-<div class="flex-1 bg-cover bg-center" data-alt="Satellite map view of a city with parks and buildings." data-location="City Park" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuALaCvRMvMTfLFeB-051pW1G7wm9BuW_zFZStOqj3tNknP6hiwReL-h2DAaxxeFKv_wsEwh95vNu0BKrk5px2WL97Y8EnxcKo7GY-wbKRd3CfHRTZYXcN7QXfsb6O2-eRqYCosei8gz_Vrfw5PbuOPQN0WjoryDF4aKMpTTcEupWGF7gdcAF3eez0KiXfnkZq-GJVjl3ydeF2luOI2bdNZBaHZcMHDn_E2CB2c7MtbcmsXHlQ5dAj0o7OlEPXxz3DGWxgz-08ZX-Y8");'></div>
+<div id="map" class="flex-1 bg-cover bg-center" style="min-height: 500px;"></div>
 <div class="absolute right-4 bottom-4 flex flex-col items-end gap-3 z-10">
 <div class="flex flex-col gap-0.5 shadow-lg">
 <button class="flex size-10 items-center justify-center rounded-t-lg bg-background-light dark:bg-[#19332d]">
@@ -289,6 +296,10 @@
 </div>
 </main>
 </div>
+<!-- JavaScript files -->
+<script src="/js/api.js"></script>
+<script src="/js/maps.js"></script>
+<script src="/js/missions.js"></script>
 </body>
 </html>
 
