@@ -9,7 +9,7 @@ class DashboardController {
     try {
       // TODO: Connect to real database/Arduino service
       const overview = {
-        dronesActive: 18,
+        dronesActive: 20,
         flowersPollinated: 1240000,
         flowersPollinatedChange: 5.2, // percentage change
         successRate: 98.2,
@@ -68,7 +68,8 @@ class DashboardController {
           date: new Date().toISOString().split('T')[0],
           time: '14:00',
           status: 'scheduled',
-          location: { lat: 43.6532, lng: -79.3832 } // Toronto coordinates
+          location: { lat: 43.6532, lng: -79.3832 }, // Toronto coordinates
+          locationName: 'Orchard Zone B'
         },
         {
           id: 'M78911',
@@ -76,7 +77,8 @@ class DashboardController {
           date: new Date().toISOString().split('T')[0],
           time: '16:30',
           status: 'scheduled',
-          location: { lat: 43.6510, lng: -79.3470 }
+          location: { lat: 43.6510, lng: -79.3470 },
+          locationName: 'Greenhouse 3'
         },
         {
           id: 'M78912',
@@ -84,7 +86,8 @@ class DashboardController {
           date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
           time: '09:00',
           status: 'scheduled',
-          location: { lat: 43.7000, lng: -79.4000 }
+          location: { lat: 43.7000, lng: -79.4000 },
+          locationName: 'Field Alpha'
         }
       ];
 

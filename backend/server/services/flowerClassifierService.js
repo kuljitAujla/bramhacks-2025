@@ -65,18 +65,30 @@ class FlowerClassifierService {
 
         // Collect stdout
         pythonProcess.stdout.on('data', (data) => {
-          stdout += data.toString();
+          const output = data.toString();
+          stdout += output;
+          console.log('[DEBUG] Python stdout:', output);
         });
 
         // Collect stderr
         pythonProcess.stderr.on('data', (data) => {
-          stderr += data.toString();
+          const output = data.toString();
+          stderr += output;
+          console.log('[DEBUG] Python stderr:', output);
         });
 
         // Handle process completion
         pythonProcess.on('close', (code) => {
+          console.log('[DEBUG] Python process exited with code:', code);
+          console.log('[DEBUG] Python stdout length:', stdout.length);
+          console.log('[DEBUG] Python stderr length:', stderr.length);
+          
           // In JSON mode, Python always exits with 0, so any non-zero is an error
           if (code !== 0) {
+            console.error('[DEBUG] Python process failed. Code:', code);
+            console.error('[DEBUG] stdout:', stdout.substring(0, 500));
+            console.error('[DEBUG] stderr:', stderr.substring(0, 500));
+            
             // Try to parse error from stdout first (JSON error response)
             if (stdout.trim()) {
               try {
@@ -95,21 +107,27 @@ class FlowerClassifierService {
 
           // Parse JSON output
           if (!stdout.trim()) {
+            console.error('[DEBUG] Python returned empty output');
             reject(new Error('Python process returned no output. Make sure the model is trained and available.'));
             return;
           }
 
           try {
+            console.log('[DEBUG] Parsing Python output:', stdout.substring(0, 200));
             const result = JSON.parse(stdout.trim());
+            console.log('[DEBUG] Parsed result:', JSON.stringify(result, null, 2));
             
             // Handle errors from Python script
             if (result.error) {
+              console.error('[DEBUG] Python script returned error:', result.error);
               reject(new Error(result.error));
               return;
             }
 
             resolve(result);
           } catch (parseError) {
+            console.error('[DEBUG] Failed to parse Python output:', parseError.message);
+            console.error('[DEBUG] Raw output:', stdout.substring(0, 500));
             reject(new Error(`Failed to parse Python output: ${stdout.substring(0, 200)}. Error: ${parseError.message}`));
           }
         });
@@ -155,18 +173,27 @@ class FlowerClassifierService {
   async isAvailable() {
     return new Promise((resolve) => {
       try {
+        console.log('[DEBUG] Checking classifier availability...');
+        console.log('[DEBUG] Python script path:', this.pythonScriptPath);
+        console.log('[DEBUG] Python command:', this.pythonCommand);
+        
         // Check if Python script exists
         if (!fs.existsSync(this.pythonScriptPath)) {
+          console.error('[DEBUG] Python script not found at:', this.pythonScriptPath);
           resolve(false);
           return;
         }
+        console.log('[DEBUG] Python script exists');
 
         // Check if model file exists (optional - service will handle gracefully if missing)
         const modelPath = path.join(__dirname, 'flower_classifier_model.h5');
         const modelExists = fs.existsSync(modelPath);
+        console.log('[DEBUG] Model path:', modelPath);
+        console.log('[DEBUG] Model exists:', modelExists);
         
         // If model doesn't exist, service is not available
         if (!modelExists) {
+          console.error('[DEBUG] Model file not found at:', modelPath);
           resolve(false);
           return;
         }

@@ -13,4 +13,16 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // Exclude threejs-earth directory from Vite's dependency scanning
+  optimizeDeps: {
+    exclude: ['three', 'dat.gui'],
+  },
+  // Exclude threejs-earth from build
+  build: {
+    rollupOptions: {
+      external: (id) => {
+        return id.includes('threejs-earth');
+      },
+    },
+  },
 })

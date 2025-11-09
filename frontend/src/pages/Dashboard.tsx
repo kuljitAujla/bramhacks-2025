@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || window.location.origin + '/api';
+// Backend API URL - defaults to localhost:3001
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 // API utility functions
 const formatNumber = (num: number) => {
@@ -31,24 +32,28 @@ const formatDateTime = (dateString: string) => {
   return date.toLocaleDateString();
 };
 
-// API functions
+// API functions - connect to backend
 const fetchOverview = async () => {
   const response = await fetch(`${API_BASE_URL}/dashboard/overview`);
+  if (!response.ok) throw new Error('Failed to fetch overview');
   return response.json();
 };
 
 const fetchDrones = async () => {
   const response = await fetch(`${API_BASE_URL}/dashboard/drones`);
+  if (!response.ok) throw new Error('Failed to fetch drones');
   return response.json();
 };
 
 const fetchMissions = async () => {
   const response = await fetch(`${API_BASE_URL}/dashboard/missions`);
+  if (!response.ok) throw new Error('Failed to fetch missions');
   return response.json();
 };
 
 const fetchLiveMissions = async () => {
   const response = await fetch(`${API_BASE_URL}/dashboard/live-missions`);
+  if (!response.ok) throw new Error('Failed to fetch live missions');
   return response.json();
 };
 
@@ -199,7 +204,7 @@ export default function Dashboard() {
                 Drones Active
               </p>
               <p className="text-gray-900 dark:text-white tracking-tight text-5xl font-bold leading-tight">
-                {overview.dronesActive ?? 18}
+                {overview.dronesActive ?? 20}
               </p>
               <p className="text-gray-500 dark:text-[#92c9bb] text-sm font-medium leading-normal">
                 Currently on missions
@@ -239,7 +244,7 @@ export default function Dashboard() {
               </p>
               <div className="flex items-center gap-2">
                 <div className="size-3 rounded-full bg-green-500 dark:bg-[#0bda49]"></div>
-                <p className="text-gray-900 dark:text-white tracking-tight text-2xl font-bold leading-tight">
+                <p className="text-green-500 dark:text-[#0bda49] tracking-tight text-2xl font-bold leading-tight">
                   {overview.systemHealth ? overview.systemHealth.charAt(0).toUpperCase() + overview.systemHealth.slice(1) : 'Normal'}
                 </p>
               </div>
@@ -416,6 +421,12 @@ function LiveMissionCard({ mission }: { mission: any }) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [detectionData, setDetectionData] = useState<{
+    flowerDetected: boolean;
+    distance: number | null;
+    confidence: number;
+    ultrasonicActive: boolean;
+  } | null>(null);
 
   const statusColorClass =
     mission.status === 'in-progress'
@@ -438,60 +449,56 @@ function LiveMissionCard({ mission }: { mission: any }) {
         videoRef.current.srcObject = null;
       }
       setShowCamera(false);
+      setDetectionData(null);
     } else {
       // Start camera
       try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-        });
-        setStream(mediaStream);
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
+        // Try to get camera with environment facing mode first (rear camera)
+        let mediaStream: MediaStream | null = null;
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+          });
+        } catch (envError) {
+          // Fallback to any available camera (for laptops/desktops)
+          console.log('Environment camera not available, trying default camera...');
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+          });
         }
+        
+        console.log('Camera stream obtained:', mediaStream);
+        const videoTracks = mediaStream.getVideoTracks();
+        console.log('Video tracks:', videoTracks);
+        console.log('Video track details:', videoTracks.map(track => ({
+          id: track.id,
+          label: track.label,
+          enabled: track.enabled,
+          readyState: track.readyState,
+          settings: track.getSettings()
+        })));
+        
+        if (!mediaStream || videoTracks.length === 0) {
+          throw new Error('No video tracks available');
+        }
+        
+        // Ensure video tracks are enabled
+        videoTracks.forEach(track => {
+          track.enabled = true;
+          console.log(`Video track ${track.id} enabled: ${track.enabled}, readyState: ${track.readyState}`);
+        });
+        
+        setStream(mediaStream);
         setShowCamera(true);
-
-        // Start frame capture
-        intervalRef.current = setInterval(async () => {
-          if (videoRef.current && videoRef.current.readyState === 4) {
-            const canvas = document.createElement('canvas');
-            canvas.width = videoRef.current.videoWidth;
-            canvas.height = videoRef.current.videoHeight;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(videoRef.current, 0, 0);
-              canvas.toBlob(async (blob) => {
-                if (blob) {
-                  const formData = new FormData();
-                  formData.append('image', blob, 'frame.jpg');
-                  formData.append('droneId', mission.droneId);
-                  formData.append('width', String(videoRef.current!.videoWidth));
-                  formData.append('height', String(videoRef.current!.videoHeight));
-
-                  try {
-                    const response = await fetch(`${API_BASE_URL}/camera/frame`, {
-                      method: 'POST',
-                      body: formData,
-                    });
-                    if (response.ok) {
-                      const data = await response.json();
-                      if (data.success && data.classification) {
-                        console.log(
-                          `Classification: ${data.classification.class} (${(data.classification.confidence * 100).toFixed(1)}% confidence)`
-                        );
-                      }
-                    }
-                  } catch (error) {
-                    console.error('Error sending frame:', error);
-                  }
-                }
-              }, 'image/jpeg', 0.8);
-            }
-          }
-        }, 2000);
+        
+        // Frame capture will start after video is ready (handled in useEffect)
       } catch (error) {
         console.error('Error accessing camera:', error);
         alert('Unable to access camera. Please check permissions.');
@@ -499,6 +506,207 @@ function LiveMissionCard({ mission }: { mission: any }) {
     }
   };
 
+  // Effect to set up video element when stream is available
+  useEffect(() => {
+    if (stream && videoRef.current && showCamera) {
+      console.log('Setting up video element with stream in useEffect...');
+      const video = videoRef.current;
+      video.srcObject = stream;
+      video.muted = true;
+      video.playsInline = true;
+      video.autoplay = true;
+      
+      const playVideo = () => {
+        if (video) {
+          console.log('Video state:', {
+            readyState: video.readyState,
+            videoWidth: video.videoWidth,
+            videoHeight: video.videoHeight,
+            paused: video.paused,
+            srcObject: video.srcObject
+          });
+          
+          if (video.readyState >= 4) {
+            // HAVE_ENOUGH_DATA - ready to play
+            console.log('Video ready to play in useEffect, dimensions:', video.videoWidth, 'x', video.videoHeight);
+            video.play().then(() => {
+              console.log('Video playing successfully in useEffect');
+            }).catch((error) => {
+              console.error('Error playing video in useEffect:', error);
+            });
+          } else if (video.readyState >= 2) {
+            // HAVE_CURRENT_DATA - can play but might not have enough data
+            console.log('Video can play but waiting for more data, readyState:', video.readyState);
+            video.play().then(() => {
+              console.log('Video playing successfully in useEffect');
+            }).catch((error) => {
+              console.error('Error playing video in useEffect:', error);
+            });
+          } else {
+            console.log('Video not ready yet in useEffect, readyState:', video.readyState);
+            setTimeout(playVideo, 100);
+          }
+        }
+      };
+      
+      video.onloadedmetadata = () => {
+        console.log('Video metadata loaded in useEffect');
+        playVideo();
+      };
+      
+      video.oncanplay = () => {
+        console.log('Video can play in useEffect');
+        playVideo();
+      };
+      
+      video.oncanplaythrough = () => {
+        console.log('Video can play through in useEffect');
+        playVideo();
+      };
+      
+      video.onplay = () => {
+        console.log('Video started playing in useEffect');
+      };
+      
+      video.onerror = (e) => {
+        console.error('Video element error in useEffect:', e);
+      };
+      
+      // Try to play immediately and also after a delay
+      playVideo();
+      setTimeout(playVideo, 300);
+    }
+  }, [stream, showCamera]);
+
+  // Effect to start frame capture when video is ready
+  useEffect(() => {
+    if (showCamera && stream && videoRef.current) {
+      // Wait for video to be ready before starting frame capture
+      const startFrameCapture = () => {
+        if (videoRef.current && videoRef.current.readyState === 4 && videoRef.current.videoWidth > 0 && videoRef.current.videoHeight > 0 && !videoRef.current.paused) {
+          console.log('Starting frame capture, video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
+          
+          // Clear any existing interval
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+          
+          // Start frame capture
+          intervalRef.current = setInterval(async () => {
+            if (videoRef.current && videoRef.current.readyState === 4 && videoRef.current.videoWidth > 0 && videoRef.current.videoHeight > 0 && !videoRef.current.paused) {
+              const canvas = document.createElement('canvas');
+              canvas.width = videoRef.current.videoWidth;
+              canvas.height = videoRef.current.videoHeight;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                console.log(`Capturing frame: ${canvas.width}x${canvas.height}`);
+                ctx.drawImage(videoRef.current, 0, 0);
+                canvas.toBlob(async (blob) => {
+                  if (blob) {
+                    const formData = new FormData();
+                    formData.append('image', blob, 'frame.jpg');
+                    formData.append('droneId', mission.droneId);
+                    formData.append('width', String(videoRef.current!.videoWidth));
+                    formData.append('height', String(videoRef.current!.videoHeight));
+
+                    try {
+                      const response = await fetch(`${API_BASE_URL}/camera/frame`, {
+                        method: 'POST',
+                        body: formData,
+                      });
+                      if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                          // Always update detection data, even if no classification
+                          if (data.classification) {
+                            const flowerDetected = data.classification.isFlower || false;
+                            const distance = data.distance || data.detection?.distance || null;
+                            const confidence = data.classification.confidence || 0;
+                            const ultrasonicActive = data.ultrasonicActive || false;
+
+                            setDetectionData({
+                              flowerDetected,
+                              distance,
+                              confidence,
+                              ultrasonicActive,
+                            });
+
+                            console.log(
+                              `Classification: ${data.classification.class} (${(confidence * 100).toFixed(1)}% confidence)${distance ? ` - Distance: ${distance.toFixed(1)}cm` : ''}${ultrasonicActive ? ' - Ultrasonic ACTIVE' : ''}`
+                            );
+                          } else {
+                            // No classification - show "No Flower Detected"
+                            // Use distance and ultrasonicActive from response if available
+                            setDetectionData({
+                              flowerDetected: false,
+                              distance: data.distance || null,
+                              confidence: 0,
+                              ultrasonicActive: data.ultrasonicActive || false,
+                            });
+                            console.log('No classification received - no flower detected');
+                          }
+                        } else {
+                          // API returned success: false
+                          setDetectionData({
+                            flowerDetected: false,
+                            distance: null,
+                            confidence: 0,
+                            ultrasonicActive: false,
+                          });
+                          console.error('API returned success: false', data.message);
+                        }
+                      } else {
+                        // HTTP error
+                        const errorText = await response.text();
+                        console.error('HTTP error:', response.status, errorText);
+                        setDetectionData({
+                          flowerDetected: false,
+                          distance: null,
+                          confidence: 0,
+                          ultrasonicActive: false,
+                        });
+                      }
+                    } catch (error) {
+                      console.error('Error sending frame:', error);
+                      // Show error state instead of null
+                      setDetectionData({
+                        flowerDetected: false,
+                        distance: null,
+                        confidence: 0,
+                        ultrasonicActive: false,
+                      });
+                    }
+                  }
+                }, 'image/jpeg', 0.8);
+              }
+            }
+          }, 2000);
+        } else {
+          // Video not ready yet, retry after a delay
+          console.log('Video not ready for frame capture yet, retrying...');
+          setTimeout(startFrameCapture, 500);
+        }
+      };
+      
+      // Wait a bit for video to be ready
+      setTimeout(startFrameCapture, 500);
+    } else {
+      // Stop frame capture if camera is off
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [showCamera, stream, mission.droneId]);
+
+  // Cleanup effect
   useEffect(() => {
     return () => {
       if (stream) {
@@ -573,19 +781,122 @@ function LiveMissionCard({ mission }: { mission: any }) {
         </button>
       </div>
       {showCamera && (
-        <div className="mt-2">
-          <div className="relative rounded-lg overflow-hidden border border-gray-300 dark:border-[#23483f] bg-black">
+        <div className="mt-2 flex flex-col gap-3">
+          {/* Flower Detection Feedback - Above Camera Feed */}
+          <div className="rounded-lg border border-gray-300 dark:border-[#23483f] bg-white dark:bg-[#11221e] p-4">
+            {detectionData ? (
+              detectionData.flowerDetected ? (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center size-10 rounded-full bg-green-500/20">
+                      <span className="material-symbols-outlined text-green-500 text-2xl">local_florist</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-gray-900 dark:text-white font-bold text-base">Flower Detected!</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs">Confidence: {(detectionData.confidence * 100).toFixed(1)}%</p>
+                    </div>
+                  </div>
+                  {detectionData.distance !== null && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-1 p-3 rounded-lg bg-gray-100 dark:bg-[#23483f]">
+                        <div className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm text-gray-600 dark:text-gray-400">straighten</span>
+                          <p className="text-gray-600 dark:text-gray-400 text-xs font-medium">Distance</p>
+                        </div>
+                        <p className="text-gray-900 dark:text-white font-bold text-lg">
+                          {detectionData.distance.toFixed(1)} cm
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-1 p-3 rounded-lg bg-gray-100 dark:bg-[#23483f]">
+                        <div className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm text-gray-600 dark:text-gray-400">sensors</span>
+                          <p className="text-gray-600 dark:text-gray-400 text-xs font-medium">Ultrasonic</p>
+                        </div>
+                        <p className={`font-bold text-lg ${detectionData.ultrasonicActive ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {detectionData.ultrasonicActive ? (
+                            <span className="flex items-center gap-1">
+                              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                              Active
+                            </span>
+                          ) : (
+                            'Inactive'
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {detectionData.distance !== null && detectionData.distance > 25 && (
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700">
+                      <span className="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-sm">warning</span>
+                      <p className="text-yellow-800 dark:text-yellow-300 text-xs font-medium">
+                        Flower is too far ({detectionData.distance.toFixed(1)}cm). Move closer to activate ultrasonic sensor (threshold: 25cm).
+                      </p>
+                    </div>
+                  )}
+                  {detectionData.distance !== null && detectionData.distance <= 25 && detectionData.ultrasonicActive && (
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700">
+                      <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-sm">check_circle</span>
+                      <p className="text-green-800 dark:text-green-300 text-xs font-medium">
+                        Flower is within range! Ultrasonic sensor is active and ready for pollination.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center size-10 rounded-full bg-gray-200 dark:bg-[#23483f]">
+                    <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-2xl">search</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-gray-900 dark:text-white font-semibold text-base">No Flower Detected</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-xs">Point the camera at a flower to detect it</p>
+                  </div>
+                </div>
+              )
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center size-10 rounded-full bg-gray-200 dark:bg-[#23483f]">
+                  <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-2xl animate-spin">sync</span>
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-gray-900 dark:text-white font-semibold text-base">Processing...</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-xs">Analyzing camera feed for flowers</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Camera Feed */}
+          <div className="relative rounded-lg overflow-hidden border border-gray-300 dark:border-[#23483f] bg-black" style={{ minHeight: '500px' }}>
             <video
               ref={videoRef}
               autoPlay
               playsInline
-              className="w-full h-auto max-h-64 object-cover"
+              muted
+              className="w-full h-full object-cover"
+              style={{ minHeight: '500px', width: '100%', backgroundColor: '#000' }}
+              onLoadedMetadata={() => {
+                console.log('Video loaded metadata');
+                if (videoRef.current) {
+                  videoRef.current.play().catch(console.error);
+                }
+              }}
+              onCanPlay={() => {
+                console.log('Video can play');
+                if (videoRef.current) {
+                  videoRef.current.play().catch(console.error);
+                }
+              }}
+              onError={(e) => {
+                console.error('Video error:', e);
+              }}
             />
-            <div className="absolute top-2 left-2 bg-red-600/80 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+            <div className="absolute top-2 left-2 bg-red-600/80 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 z-10">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               LIVE
             </div>
-            <div className="absolute bottom-2 right-2 flex gap-2">
+
+            <div className="absolute bottom-2 right-2 flex gap-2 z-10">
               <button
                 onClick={toggleCamera}
                 className="px-3 py-1 bg-black/50 hover:bg-black/70 text-white text-xs font-medium rounded-lg transition-colors"

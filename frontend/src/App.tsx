@@ -8,6 +8,9 @@ import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
+import Missions from "./pages/Missions";
+import DroneDashboard from "./pages/DroneDashboard";
+import Analytics from "./pages/Analytics";
 import NDVIAnalyzer from "./pages/NDVIAnalyzer";
 import Heatmap from "./pages/Heatmap";
 import AboutUs from "./pages/AboutUs";
@@ -19,6 +22,9 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/missions" component={Missions} />
+      <Route path="/drone-dashboard" component={DroneDashboard} />
+      <Route path="/analytics" component={Analytics} />
       <Route path="/ndvi-analyzer" component={NDVIAnalyzer} />
       <Route path="/heatmap" component={Heatmap} />
       <Route path="/about" component={AboutUs} />
@@ -32,8 +38,8 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [location] = useLocation();
 
-  // Dashboard has its own layout, so don't wrap it
-  if (location === '/dashboard') {
+  // Dashboard, Missions, DroneDashboard, and Analytics have their own layouts, so don't wrap them
+  if (location === '/dashboard' || location === '/missions' || location === '/drone-dashboard' || location === '/analytics') {
     return (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
