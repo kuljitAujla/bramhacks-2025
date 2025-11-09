@@ -12,7 +12,7 @@ export default function AboutUs() {
             <h2 className="text-2xl font-semibold">Our Mission</h2>
           </div>
           <p className="text-muted-foreground leading-relaxed">
-            Sustaina-Satellite aims to democratize access to satellite-based environmental monitoring. 
+            Polli-tech aims to democratize access to satellite-based environmental monitoring. 
             We believe that data-driven insights are essential for sustainable development and ecosystem 
             conservation. Our platform empowers organizations and individuals to make informed decisions 
             about environmental stewardship.

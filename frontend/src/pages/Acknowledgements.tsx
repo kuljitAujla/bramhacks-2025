@@ -78,7 +78,7 @@ export default function Acknowledgements() {
           <p className="text-muted-foreground">
             We extend our gratitude to the global community of environmental researchers, 
             open-source contributors, and sustainability advocates who inspire and support 
-            projects like Sustaina-Satellite. Together, we can create a more sustainable future.
+            projects like Polli-tech. Together, we can create a more sustainable future.
           </p>
         </section>
       </div>

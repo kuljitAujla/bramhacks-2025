@@ -14,8 +14,11 @@ import Analytics from "./pages/Analytics";
 import NDVIAnalyzer from "./pages/NDVIAnalyzer";
 import Heatmap from "./pages/Heatmap";
 import AboutUs from "./pages/AboutUs";
+import CommunityAction from "./pages/CommunityAction";
 import Acknowledgements from "./pages/Acknowledgements";
 import NotFound from "@/pages/not-found";
+import "leaflet/dist/leaflet.css";
+
 
 function Router() {
   return (
@@ -28,6 +31,7 @@ function Router() {
       <Route path="/ndvi-analyzer" component={NDVIAnalyzer} />
       <Route path="/heatmap" component={Heatmap} />
       <Route path="/about" component={AboutUs} />
+      <Route path="/community-action" component={CommunityAction} />
       <Route path="/acknowledgements" component={Acknowledgements} />
       <Route component={NotFound} />
     </Switch>

@@ -357,6 +357,7 @@ model_path = os.path.join(os.path.dirname(__file__), 'flower_classifier_model.h5
 model.save(model_path)
 print(f"Model saved to: {model_path}")
 
+
 my_image_path = '/content/photo-1695897706183-5295269554b9.jpg'
 
 final_answer = 0;

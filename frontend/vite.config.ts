@@ -22,6 +22,11 @@ export default defineConfig({
     rollupOptions: {
       external: (id) => {
         return id.includes('threejs-earth');
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
       },
     },
   },

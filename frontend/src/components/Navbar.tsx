@@ -1,4 +1,4 @@
-import { Menu, Satellite, X } from "lucide-react";
+import { Menu, Hexagon, X } from "lucide-react";
 import { Link } from "wouter";
 
 interface NavbarProps {
@@ -23,8 +23,8 @@ export default function Navbar({ isSidebarOpen, onToggleSidebar }: NavbarProps) 
         </button>
 
         <Link href="/" className="flex items-center gap-2 hover-elevate px-2 py-1 rounded-md">
-          <Satellite className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold">Sustaina-Satellite</h1>
+          <Hexagon className="h-6 w-6 text-primary" />
+          <h1 className="text-xl font-bold">Polli-tech</h1>
         </Link>
       </div>
 

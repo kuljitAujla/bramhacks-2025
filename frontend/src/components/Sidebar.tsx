@@ -1,4 +1,4 @@
-import { Home, Image, Map, Info, Heart, X } from "lucide-react";
+import { Home, Map, Info, Heart, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 interface SidebarProps {
@@ -8,8 +8,7 @@ interface SidebarProps {
 
 const navigationItems = [
   { path: "/", label: "Home", icon: Home },
-  { path: "/ndvi-analyzer", label: "NDVI Analyzer", icon: Image },
-  { path: "/heatmap", label: "Heatmap", icon: Map },
+  { path: "/community-action", label: "Community Action", icon: Info },
   { path: "/about", label: "About Us", icon: Info },
   { path: "/acknowledgements", label: "Acknowledgements", icon: Heart },
 ];
