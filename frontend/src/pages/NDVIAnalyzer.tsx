@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import AnalysisMetric from "../components/AnalysisMetric";
+import { Button } from "@/components/ui/button";
 import NDVIMap from "../components/NDVIMap";
-import { TrendingUp, TreeDeciduous, Leaf, BarChart3, Calendar } from "lucide-react";
-
-type TimePeriod = "1-month" | "1-year" | null;
-type SelectablePeriod = Exclude<TimePeriod, null>;
+import AnalysisMetric from "../components/AnalysisMetric";
+import { Activity, BadgeCheck, Leaf, TrendingUp, TreeDeciduous, BarChart3, Calendar } from "lucide-react";
 
 type SummaryFile = {
   total_loss_m2: number;
@@ -28,38 +26,13 @@ type AnnualState =
   | { status: "ready"; data: AnalysisData }
   | { status: "error"; message: string };
 
-const PERIOD_OPTIONS: ReadonlyArray<{
-  period: SelectablePeriod;
-  label: string;
-  description: string;
-  disabled?: boolean;
-  badge?: string;
-}> = [
-  {
-    period: "1-month",
-    label: "1 Month",
-    description: "Recent changes",
-    disabled: true,
-    badge: "Coming soon",
-  },
-  {
-    period: "1-year",
-    label: "1 Year",
-    description: "Long-term analysis",
-  },
-];
-
-const MONTHLY_ANALYSIS: AnalysisData = {
-  vegetationChange: "+8%",
-  treesToPlant: "420",
-  ndviScore: "0.65",
-  coverageArea: "87%",
-  summary:
-    "Over the past month, vegetation has shown steady growth with an 8% increase in green coverage. To support this positive trend, we recommend planting approximately 420 trees in identified sparse areas. The average NDVI score of 0.65 indicates healthy vegetation across 87% of the monitored region.",
-};
+type NDVISectionVariant = "page" | "home";
 
 export default function NDVIAnalyzer() {
-  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>(null);
+  return <NDVISection variant="page" />;
+}
+
+export function NDVISection({ variant = "page" }: { variant?: NDVISectionVariant }) {
   const [annualState, setAnnualState] = useState<AnnualState>({ status: "idle" });
 
   useEffect(() => {
@@ -85,7 +58,7 @@ export default function NDVIAnalyzer() {
         if (!cancelled) {
           setAnnualState({
             status: "error",
-            message: "Unable to load the latest 1-year analysis. Please try again soon.",
+            message: "Unable to load the latest NDVI analysis. Please try again soon.",
           });
         }
       }
@@ -97,87 +70,175 @@ export default function NDVIAnalyzer() {
     };
   }, []);
 
-  const analysisData = getAnalysisData(selectedPeriod, annualState);
-  const showLoader = selectedPeriod === "1-year" && annualState.status === "loading";
-  const errorMessage =
-    selectedPeriod === "1-year" && annualState.status === "error" ? annualState.message : null;
+  const containerClasses =
+    variant === "page" ? "p-4 md:p-10 max-w-[1200px] xl:max-w-[1400px] mx-auto" : "max-w-[1200px] xl:max-w-[1400px] mx-auto";
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold mb-3">NDVI Vegetation Analyzer</h1>
+    <div className={containerClasses}>
+      <div className="space-y-10">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start">
+          <ProblemSection state={annualState} />
+          <SolutionSection />
+        </div>
+
+        <div>
+          <h3 className="text-2xl font-bold mb-4">Where it&apos;s happening</h3>
+          <p className="text-muted-foreground mb-6">
+            Pollination flights follow live NDVI layers so drones can focus on the orchards and
+            fields most at risk. Explore the latest vegetation changes below.
+          </p>
+          <div className="rounded-xl border border-border overflow-hidden shadow-sm">
+            <NDVIMap />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProblemSection({ state }: { state: AnnualState }) {
+  const isLoading = state.status === "idle" || state.status === "loading";
+  const hasError = state.status === "error";
+  const data = state.status === "ready" ? state.data : null;
+
+  return (
+    <section className="space-y-6">
+      <header className="space-y-3">
+        <h2 className="text-3xl font-bold">The Problem</h2>
         <p className="text-muted-foreground text-lg">
-          Choose a time period to see how vegetation has been shifting.
+          Widespread canopy loss is starving out pollinators. As flowering zones thin and tree stands
+          disappear, native bee populations crash, pollination rates dip, and the environment
+          struggles to recover.
         </p>
       </header>
 
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Select Time Period
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {PERIOD_OPTIONS.map((option) => {
-            const isSelected = selectedPeriod === option.period;
-            const isDisabled = Boolean(option.disabled);
-
-            return (
-              <button
-                key={option.period}
-                type="button"
-                onClick={() => !isDisabled && setSelectedPeriod(option.period)}
-                disabled={isDisabled}
-                className={`
-                  p-6 rounded-lg border-2 text-left transition-all
-                  ${isSelected ? "border-primary bg-accent" : "border-border bg-card hover-elevate"}
-                  ${isDisabled ? "opacity-60 cursor-not-allowed hover:shadow-none" : ""}
-                `}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-2xl font-bold">{option.label}</span>
-                  {option.badge && (
-                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground border border-dashed border-border px-2 py-0.5 rounded-full">
-                      {option.badge}
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm text-muted-foreground">{option.description}</div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {showLoader && (
-        <div className="bg-muted/30 border border-dashed border-border rounded-lg p-12 text-center">
-          <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground text-lg">
-            Hang tight—we&apos;re pulling in the latest 1-year update.
+      {isLoading && (
+        <div className="bg-muted/30 border border-dashed border-border rounded-lg p-10 text-center">
+          <Calendar className="h-14 w-14 text-muted-foreground mx-auto mb-4 animate-pulse" />
+          <p className="text-muted-foreground text-base">
+            Hang tight—we&apos;re pulling in the latest NDVI picture.
           </p>
         </div>
       )}
 
-      {errorMessage && (
+      {hasError && state.status === "error" && (
         <div className="bg-destructive/10 border border-destructive rounded-lg p-6 text-center">
-          <p className="text-destructive font-medium">{errorMessage}</p>
+          <p className="text-destructive font-medium">{state.message}</p>
         </div>
       )}
 
-      {!showLoader && !errorMessage && analysisData && (
-        <div className="bg-card border border-card-border rounded-lg p-6 md:p-8 space-y-8">
-          <AnalysisResults data={analysisData} />
-          <MapSection />
+      {data && (
+        <div className="bg-card border border-card-border rounded-lg p-6 md:p-8 space-y-6">
+          <p className="text-muted-foreground">
+            NDVI monitoring shows just how fast our green cover is fading. The figures below call
+            out the canopy shifts and replanting gaps driving today&apos;s pollination crisis.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <AnalysisMetric
+              icon={TrendingUp}
+              value={data.vegetationChange}
+              label="Vegetation change"
+              trend="down"
+            />
+            <AnalysisMetric icon={TreeDeciduous} value={data.treesToPlant} label="Trees to plant" />
+            <AnalysisMetric icon={Leaf} value={data.ndviScore} label="Avg NDVI score" trend="down" />
+            <AnalysisMetric icon={BarChart3} value={data.coverageArea} label="Coverage area" />
+          </div>
+
+          <div className="p-4 bg-accent/40 rounded-lg">
+            <h3 className="font-semibold mb-2">NDVI summary</h3>
+            <p className="text-muted-foreground">{data.summary}</p>
+          </div>
         </div>
       )}
 
-      {!selectedPeriod && (
-        <div className="bg-muted/30 border border-dashed border-border rounded-lg p-12 text-center">
-          <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground text-lg">Pick a time period above to see the breakdown.</p>
+      <Button
+        size="lg"
+        className="mt-4 bg-yellow-300 text-slate-900 hover:bg-yellow-300/90 font-semibold px-8"
+        asChild
+      >
+        <a href="/community-action">What you can do to help</a>
+      </Button>
+    </section>
+  );
+}
+
+function SolutionSection() {
+  const stats = [
+    {
+      icon: Activity,
+      label: "Active drones",
+      value: "20",
+    },
+    {
+      icon: Leaf,
+      label: "Flowers pollinated",
+      value: "1.24k",
+    },
+    {
+      icon: BadgeCheck,
+      label: "Success rate",
+      value: "98.2%",
+    },
+  ];
+
+  return (
+    <section className="space-y-6">
+      <header className="space-y-3">
+        <h2 className="text-3xl font-bold text-primary">The Solution</h2>
+        <p className="text-muted-foreground text-lg">
+          In addition to community tree planting, Polli-tech deploys lightweight drones to carry
+          pollen between isolated blooms, stitching the landscape back together while native
+          populations recover. Each mission is guided by live NDVI layers so the drones target the
+          plants most at risk.
+        </p>
+      </header>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={stat.label}
+              className="rounded-xl border border-card-border bg-card p-5 shadow-sm space-y-3"
+            >
+              <Icon className="h-6 w-6 text-primary" />
+              <p className="text-3xl font-semibold text-foreground">{stat.value}</p>
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
+            </div>
+          );
+        })}
+
+        <div className="rounded-xl border border-yellow-400/60 bg-yellow-400/10 p-5 flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-yellow-200">Mission control</h3>
+            <p className="text-sm text-yellow-100/80 mt-1">
+              Track upcoming drone sorties, review pollen routes, and schedule new rescue flights.
+            </p>
+          </div>
+          <Button
+            size="lg"
+            className="mt-6 w-full bg-yellow-300 text-slate-900 hover:bg-yellow-300/90 font-semibold"
+          >
+            View drone missions
+          </Button>
         </div>
-      )}
-    </div>
+      </div>
+
+      <div className="rounded-2xl border border-card-border bg-card/80 p-6 md:p-8 space-y-4 shadow-sm">
+        <h3 className="text-xl font-semibold text-foreground">The full solution</h3>
+        <p className="text-muted-foreground">
+          Our drones give the municipality real-time reach—pollinating distant fields and scouting
+          canopy gaps—while weekly community plantings rebuild the on-the-ground habitats those
+          pollinators rely on. Together, the tech and the neighbors close the loop.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Tap the yellow mission control tile to watch upcoming sorties, then join us on Tuesdays,
+          Wednesdays, weekends, and pop-up planting days to keep new trees in the ground.
+        </p>
+      </div>
+    </section>
   );
 }
 
@@ -201,50 +262,4 @@ function buildAnnualAnalysis(summary: SummaryFile): AnalysisData {
       0,
     )}% level.`,
   };
-}
-
-function getAnalysisData(selectedPeriod: TimePeriod, annualState: AnnualState): AnalysisData | null {
-  if (selectedPeriod === "1-month") {
-    return MONTHLY_ANALYSIS;
-  }
-
-  if (selectedPeriod === "1-year" && annualState.status === "ready") {
-    return annualState.data;
-  }
-
-  return null;
-}
-
-function AnalysisResults({ data }: { data: AnalysisData }) {
-  return (
-    <section>
-      <h2 className="text-2xl font-bold mb-6">Analysis Results</h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <AnalysisMetric icon={TrendingUp} value={data.vegetationChange} label="Vegetation Change" trend="up" />
-        <AnalysisMetric icon={TreeDeciduous} value={data.treesToPlant} label="Trees to Plant" />
-        <AnalysisMetric icon={Leaf} value={data.ndviScore} label="Avg NDVI Score" trend="up" />
-        <AnalysisMetric icon={BarChart3} value={data.coverageArea} label="Coverage Area" trend="neutral" />
-      </div>
-
-      <div className="p-4 bg-accent/50 rounded-lg">
-        <h3 className="font-semibold mb-2">Summary</h3>
-        <p className="text-muted-foreground">{data.summary}</p>
-      </div>
-    </section>
-  );
-}
-
-function MapSection() {
-  return (
-    <section>
-      <h2 className="text-2xl font-bold mb-4">NDVI Change Map</h2>
-      <p className="text-muted-foreground mb-6">
-        Pan and zoom to spot where vegetation has thickened or thinned across the region.
-      </p>
-      <div className="rounded-lg overflow-hidden border border-border">
-        <NDVIMap />
-      </div>
-    </section>
-  );
 }

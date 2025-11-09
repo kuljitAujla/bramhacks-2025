@@ -180,22 +180,24 @@ const LegendControl = () => {
 
     legend.onAdd = () => {
       const div = L.DomUtil.create("div", "ndvi-legend");
-      div.style.background = "white";
-      div.style.padding = "8px 10px";
-      div.style.borderRadius = "8px";
+      div.style.background = "rgba(12, 12, 12, 0.92)";
+      div.style.color = "#f8fafc";
+      div.style.padding = "10px 12px";
+      div.style.borderRadius = "10px";
       div.style.fontSize = "14px";
       div.style.lineHeight = "1.4";
-      div.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+      div.style.boxShadow = "0 4px 16px rgba(0,0,0,0.35)";
       div.style.display = "inline-block";
+      div.style.border = "1px solid rgba(148, 163, 184, 0.35)";
 
       div.innerHTML = `
         <div style="display:flex;align-items:center;margin-bottom:4px;">
           <span style="background:#ff3300;width:14px;height:14px;display:inline-block;margin-right:6px;border:1px solid #cc3300;"></span>
-          Vegetation Decrease
+          <span style="color:#f8fafc;">Vegetation Decrease</span>
         </div>
         <div style="display:flex;align-items:center;">
           <span style="background:#33cc33;width:14px;height:14px;display:inline-block;margin-right:6px;border:1px solid #00cc44;"></span>
-          Vegetation Increase
+          <span style="color:#f8fafc;">Vegetation Increase</span>
         </div>
       `;
       return div;
